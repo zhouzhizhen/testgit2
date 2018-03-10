@@ -1,0 +1,65 @@
+{
+	"type": "APZ0020",
+	"join": [{
+		"type": "PEZ0131",
+		"fieldList": {
+			"DRAWNO": "PEZ0131_DRAWNO",
+			"DRAWURL": "PEZ0131_DRAWURL"
+		},
+		"relationList": {
+			"APZ0020.PTCD": "PEZ0131.PTCD"
+		},
+		"terms": {
+			"must": {}
+		}
+	}, {
+		"type": "PEZ003",
+		"fieldList": {
+			"PTWT": "PEZ003_PTWT",
+			"PTNM": "PEZ003_PTNM",
+			"PTCD": "PEZ003_PTCD"
+		},
+		"relationList": {
+			"APZ0020.PTCD": "PEZ003.PTCD"
+		},
+		"join": [{
+			"type": "PEZ01100",
+			"fieldList": {
+				"MATGBNM": "PEZ01100_MATGBNM"
+			},
+			"relationList": {
+				"PEZ003.MATGBCD": "PEZ01100.MATGBCD"
+			},
+			"join": [{
+				"type": "PEZ01200",
+				"fieldList": {
+					"CASTTYPNM": "PEZ01200_CASTTYPNM"
+				},
+				"relationList": {
+					"PEZ01100.CASTTYP": "PEZ01200.CASTTYP"
+				},
+				"terms": {
+					"must": {
+						"CASTTYPNM": "合金"
+					}
+				},
+				"pattern": "inner"
+			}],
+			"terms": {
+				"must": {}
+			}
+		}],
+		"terms": {
+			"must": {
+				"FACCD": "G001"
+			}
+		},
+		"pattern": "inner"
+	}],
+	"terms": {
+		"must": {
+			"PMONTH": "201802"
+		}
+	},
+	"fieldList": {}
+}
