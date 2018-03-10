@@ -1,0 +1,38 @@
+﻿清理业务数据步骤：
+一、备份数据库（meta_data表）
+
+二、从数据库中删除指定业务对象数据
+-- 查询以下type列表的数据总条数
+select count(*) from meta_data where type_name in('META_ORGANIZATION', 'META_CATEGORY', 'META_PERSON', 'META_DEPARTMENT','AB_ALLINE_LEVEL_POST','AB_ALLINE','AB_END_AB_USER','AB_ALPUSH_USER_HIS',
+'AB_SUBMIT_ABITEM','AB_ABMASTER_DATA','AB_ALRESUME','AB_ALKANBAN_WUNIT','AB_PROCESS_TASK','AB_PROCESS_RECORD','AB_ALLINE_RELATIONSHIP','AB_ABITEM','LDC_PRODUCTION_LINE','LDC_WORK_TEAM',
+'LDC_SCHEDULE','LDC_STATION','LDC_EQUIPMENT_TYPE','LDC_SHIFT','LDC_SHIFT_SCHEDUL','LDC_KANBAN','LDC_FACTORY_CODE','LDC_WORK_SHOP','LDC_VENDOR','LDC_EQUIPMENT','META_POST', 'AB_ALLINE_LEVEL');
+
+-- 删除以下指定type下的所有数据
+delete from meta_data where type_name in('META_ORGANIZATION', 'META_CATEGORY', 'META_PERSON', 'META_DEPARTMENT','AB_ALLINE_LEVEL_POST','AB_ALLINE','AB_END_AB_USER','AB_ALPUSH_USER_HIS',
+'AB_SUBMIT_ABITEM','AB_ABMASTER_DATA','AB_ALRESUME','AB_ALKANBAN_WUNIT','AB_PROCESS_TASK','AB_PROCESS_RECORD','AB_ALLINE_RELATIONSHIP','AB_ABITEM','LDC_PRODUCTION_LINE','LDC_WORK_TEAM',
+'LDC_SCHEDULE','LDC_STATION','LDC_EQUIPMENT_TYPE','LDC_SHIFT','LDC_SHIFT_SCHEDUL','LDC_KANBAN','LDC_FACTORY_CODE','LDC_WORK_SHOP','LDC_VENDOR','LDC_EQUIPMENT','META_POST', 'AB_ALLINE_LEVEL');
+
+
+三、重建索引并加载数据库中的数据到ES中
+注意修改-Dindex.name参数的值（-Dindex.name为ES索引的名称）,指定的索引存在时则为刷新ES的数据,但是数据库中删除的数据ES中不会刷新，索引不存在时则为新建索引并导入数据
+java -Dbaas.jdbc.url="jdbc:postgresql://39.108.84.230:5432/meta_rdc?stringtype=unspecified"  -Dindex.base.url="http://39.108.84.230:9200/" -Dindex.name="mybaas_2018031001" -jar baas-indexer-1.0-SNAPSHOT.jar
+
+
+四、切换ES索引别名，上一步骤执行是若为新建索引则需执行此步骤，若只是刷新ES的数据则不用执行此步骤
+# 删除旧索引对应的别名并将别名指向到新索引
+curl -sS -X POST '39.108.84.230:9200/_aliases?pretty' -H 'Content-Type: application/json' -d'
+{
+    "actions" : [
+        { "remove" : { "index" : "mybaas_20180310", "alias" : "mybaas" } },
+        { "add" : { "index" : "mybaas_2018031001", "alias" : "mybaas" } }
+    ]
+}'
+
+#查看ES中所有索引
+curl -sS '39.108.84.230:9200/_cat/indices'
+
+#查看ES中的别名以及别名对应的索引
+curl -sS '39.108.84.230:9200/_cat/aliases'
+
+#删除指定索引
+curl -sS -X DELETE '39.108.84.230:9200/mybaas_201803081?pretty'
